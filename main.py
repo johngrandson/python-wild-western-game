@@ -12,7 +12,7 @@ class AllSprites(pygame.sprite.Group):
         super().__init__()
         self.offset = vector()
         self.display_surface = pygame.display.get_surface()
-        self.bg = pygame.image.load("../graphics/other/bg.png").convert()
+        self.bg = pygame.image.load("graphics/other/bg.png").convert()
 
     def center_around(self, sprite, window_width, window_height):
         self.offset.x = sprite.rect.centerx - window_width / 2
@@ -20,9 +20,9 @@ class AllSprites(pygame.sprite.Group):
 
     def customize_draw(self, player, window_width, window_height):
         self.center_around(player, window_width, window_height)
-        self.blit_surfaces(player)
+        self.blit_surfaces()
 
-    def blit_surfaces(self, player):
+    def blit_surfaces(self):
         self.display_surface.blit(self.bg, -self.offset)
         for sprite in sorted(self.sprites(), key=lambda sprite: sprite.rect.centery):
             offset_rect = sprite.image.get_rect(center=sprite.rect.center)
@@ -41,9 +41,10 @@ class Game:
             (self.WINDOW_WIDTH, self.WINDOW_HEIGHT), pygame.RESIZABLE
         )
         pygame.display.set_caption("Western shooter")
+
         self.clock = pygame.time.Clock()
         self.bullet_surf = pygame.image.load(
-            "../graphics/other/particle.png"
+            "graphics/other/particle.png"
         ).convert_alpha()
 
         self.all_sprites = AllSprites()
@@ -52,8 +53,8 @@ class Game:
         self.monsters = pygame.sprite.Group()
 
         self.setup()
-        self.music = pygame.mixer.Sound("../sound/music.mp3")
-        # self.music.play(loops = -1)
+        self.music = pygame.mixer.Sound("sound/music.mp3")
+        self.music.play(loops = -1)
 
     def create_bullet(self, pos, direction):
         Bullet(pos, direction, self.bullet_surf, [self.all_sprites, self.bullets])
@@ -77,13 +78,13 @@ class Game:
                     sprite.damage()
 
         # player bullet collision
-        # if pygame.sprite.spritecollide(
-        #     self.player, self.bullets, True, pygame.sprite.collide_mask
-        # ):
-        #     self.player.damage()
+        if pygame.sprite.spritecollide(
+            self.player, self.bullets, True, pygame.sprite.collide_mask
+        ):
+            self.player.damage()
 
     def setup(self):
-        tmx_map = load_pygame("../data/map.tmx")
+        tmx_map = load_pygame("data/map.tmx")
 
         for x, y, surf in tmx_map.get_layer_by_name("Fence").tiles():
             Sprite((x * 64, y * 64), surf, [self.all_sprites, self.obstacles])
@@ -111,15 +112,15 @@ class Game:
                     player=self.player,
                 )
 
-            # if obj.name == "Cactus":
-            #     Cactus(
-            #         pos=(obj.x, obj.y),
-            #         groups=[self.all_sprites, self.monsters],
-            #         path=PATHS["cactus"],
-            #         collision_sprites=self.obstacles,
-            #         player=self.player,
-            #         create_bullet=self.create_bullet,
-            #     )
+            if obj.name == "Cactus":
+                Cactus(
+                    pos=(obj.x, obj.y),
+                    groups=[self.all_sprites, self.monsters],
+                    path=PATHS["cactus"],
+                    collision_sprites=self.obstacles,
+                    player=self.player,
+                    create_bullet=self.create_bullet,
+                )
 
     def handle_events(self, event):
         if event.type == pygame.QUIT:
@@ -129,10 +130,6 @@ class Game:
         if event.type == pygame.VIDEORESIZE:
             self.WINDOW_WIDTH = event.w
             self.WINDOW_HEIGHT = event.h
-
-            screen = pygame.display.set_mode(
-                (self.WINDOW_WIDTH, self.WINDOW_HEIGHT), pygame.RESIZABLE
-            )
             self.all_sprites.center_around(
                 self.player, self.WINDOW_WIDTH, self.WINDOW_HEIGHT
             )

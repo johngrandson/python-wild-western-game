@@ -133,10 +133,9 @@ class Cactus(Monster):
             self.bullet_shot = False
             self.shoot_sound.play()
 
-        if self.attacking:
+        if not self.state_machine.state == "attacking":
             self.status = self.status.split("_")[0] + "_attacking"
-            if not self.state_machine.state == "attacking":
-                self.state_machine.attack()
+            self.state_machine.attack()
         else:
             if not self.state_machine.state == "idle":
                 self.state_machine.idle()
